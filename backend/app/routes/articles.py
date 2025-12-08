@@ -21,21 +21,21 @@ def get_articles():
     """Get articles with search and pagination"""
     try:
         # Get query parameters
-        keyword = request.args.get('keyword', '')
+        search = request.args.get('search', '')
         category_id = request.args.get('category_id', type=int)
         date_from = request.args.get('date_from')
         date_to = request.args.get('date_to')
         page = request.args.get('page', 1, type=int)
-        page_size = request.args.get('page_size', 10, type=int)
+        page_size = request.args.get('limit', 10, type=int)
         
         # Build query
         query = Article.query
         
         # Apply filters
-        if keyword:
+        if search:
             query = query.filter(
-                (Article.title.contains(keyword)) | 
-                (Article.content.contains(keyword))
+                (Article.title.contains(search)) | 
+                (Article.content.contains(search))
             )
         
         if category_id:
@@ -65,8 +65,8 @@ def get_articles():
             'items': [article.to_dict(include_content=False, user_id=user_id) for article in articles],
             'total': total,
             'page': page,
-            'page_size': page_size,
-            'total_pages': total_pages
+            'limit': page_size,
+            'pages': total_pages
         }), 200
         
     except Exception as e:

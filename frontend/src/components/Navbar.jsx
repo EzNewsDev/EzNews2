@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { FaSun, FaMoon, FaBars, FaTimes } from 'react-icons/fa';
+import Logo from './Logo';
 
 const Navbar = () => {
     const { user, logout, isAuthenticated, isAdmin } = useAuth();
@@ -15,8 +16,7 @@ const Navbar = () => {
                 <div className="flex justify-between h-16">
                     <div className="flex items-center">
                         <Link to="/" className="flex items-center">
-                            <span className="text-2xl font-bold text-primary">EZ</span>
-                            <span className="text-2xl font-bold text-secondary">News</span>
+                            <Logo />
                         </Link>
                     </div>
 

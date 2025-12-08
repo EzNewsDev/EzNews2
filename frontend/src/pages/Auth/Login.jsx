@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import DecoPattern from '../../components/DecoPattern';
-import Logo from '../../components/Logo';
+import logo from '../../assets/logo_EzNews_new.png';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -56,7 +56,7 @@ const Login = () => {
                 <div className="max-w-md w-full space-y-8">
                     {/* Logo */}
                     <div className="text-center">
-                        <Logo />
+                        <img src={logo} alt="EzNews Logo" className="h-32 w-auto mx-auto" />
                     </div>
 
                     {/* Title */}
