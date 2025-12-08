@@ -5,7 +5,7 @@ import LoadingSkeleton from '../../components/LoadingSkeleton';
 import api from '../../utils/api';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id as idLocale } from 'date-fns/locale/id';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState({
@@ -251,7 +251,7 @@ const AdminDashboard = () => {
                                                 {article.author_name}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                                                {format(new Date(article.published_at), 'dd MMM yyyy', { locale: id })}
+                                                {format(new Date(article.published_at), 'dd MMM yyyy', { locale: idLocale })}
                                             </td>
                                             <td className="px-6 py-4 text-sm">
                                                 <div className="flex items-center space-x-2">

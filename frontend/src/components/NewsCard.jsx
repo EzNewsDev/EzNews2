@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id as idLocale } from 'date-fns/locale/id';
 
 const NewsCard = ({ article }) => {
     const { id: articleId, title, content, image_url, category, author_name, published_at } = article;
@@ -12,7 +12,7 @@ const NewsCard = ({ article }) => {
     // Format date to relative time
     const timeAgo = formatDistanceToNow(new Date(published_at), {
         addSuffix: true,
-        locale: id
+        locale: idLocale
     });
 
     return (
