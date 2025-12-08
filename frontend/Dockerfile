@@ -1,0 +1,21 @@
+# Frontend Dockerfile for React + Vite
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy application code
+COPY . .
+
+# Expose port for Vite dev server
+EXPOSE 5173
+
+# Start development server
+# Vite needs --host to accept connections from outside container
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
