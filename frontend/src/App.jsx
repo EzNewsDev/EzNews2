@@ -10,16 +10,16 @@ import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
 import Home from './pages/Home';
-import NewsList from './pages/NewsList';
-import NewsDetail from './pages/NewsDetail';
-import Profile from './pages/User/Profile';
-import Bookmarks from './pages/User/Bookmarks';
-import AdminDashboard from './pages/Admin/Dashboard';
-import ArticleList from './pages/Admin/ArticleList';
-import ArticleForm from './pages/Admin/ArticleForm';
-import Categories from './pages/Admin/Categories';
-import Tags from './pages/Admin/Tags';
-import Users from './pages/Admin/Users';
+import { NewsList } from './pages/NewsList';
+import { NewsDetail } from './pages/NewsDetail';
+import { Profile } from './pages/User/Profile';
+import { Bookmarks } from './pages/User/Bookmarks';
+import { AdminDashboard } from './pages/Admin/Dashboard';
+import { ArticleList } from './pages/Admin/ArticleList';
+import { ArticleForm } from './pages/Admin/ArticleForm';
+import { Categories } from './pages/Admin/Categories';
+import { Tags } from './pages/Admin/Tags';
+import { Users } from './pages/Admin/Users';
 
 // Protected Route Components
 const ProtectedRoute = ({ children }) => {

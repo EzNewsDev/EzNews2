@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MySQL Database
   mysql:
@@ -15,7 +13,6 @@ services:
       - "3307:3306"  # Map to 3307 on host to avoid conflict with existing MySQL
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./backend/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     networks:
       - eznews_network
     healthcheck:
@@ -23,6 +20,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   # Flask Backend
   backend:
