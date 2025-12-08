@@ -4,16 +4,21 @@ import { formatDistanceToNow } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale/id';
 
 const NewsCard = ({ article }) => {
+    // Safety check for article object
+    if (!article) {
+        return null;
+    }
+
     const { id: articleId, title, content, image_url, category, author_name, published_at } = article;
 
     // Extract first 150 characters as excerpt
-    const excerpt = content.substring(0, 150) + '...';
+    const excerpt = content ? content.substring(0, 150) + '...' : '';
 
     // Format date to relative time
-    const timeAgo = formatDistanceToNow(new Date(published_at), {
+    const timeAgo = published_at ? formatDistanceToNow(new Date(published_at), {
         addSuffix: true,
         locale: idLocale
-    });
+    }) : 'Baru saja';
 
     return (
         <Link
@@ -28,7 +33,7 @@ const NewsCard = ({ article }) => {
                         alt={title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+                            e.target.style.display = 'none';
                         }}
                     />
                 ) : (

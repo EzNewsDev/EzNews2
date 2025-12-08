@@ -55,7 +55,7 @@ const SearchBar = ({ onSearch, onCategoryChange, categories = [], loading = fals
                         disabled={loading}
                     >
                         <option value="">Semua Kategori</option>
-                        {categories.map((category) => (
+                        {Array.isArray(categories) && categories.map((category) => (
                             <option key={category.id} value={category.id}>
                                 {category.name}
                             </option>
