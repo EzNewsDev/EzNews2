@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import NewsCard from '../components/NewsCard';
 import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
@@ -157,6 +158,7 @@ const NewsList = () => {
                     </div>
                 )}
             </div>
+            <Footer />
         </div>
     );
 };

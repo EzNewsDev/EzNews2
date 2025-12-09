@@ -63,8 +63,12 @@ def login():
         user = User.query.filter_by(email=data['email']).first()
         
         # Verify credentials
-        if not user or not user.check_password(data['password']):
-            return jsonify({'error': 'Invalid email or password'}), 401
+        # Verify credentials
+        if not user:
+            return jsonify({'error': 'Email tidak terdaftar'}), 401
+            
+        if not user.check_password(data['password']):
+            return jsonify({'error': 'Password salah'}), 401
         
         # Generate JWT token
         access_token = create_access_token(identity=user.email)

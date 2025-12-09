@@ -41,7 +41,7 @@ services:
       - FLASK_ENV=development
       - SECRET_KEY=docker-flask-secret-key
       - CORS_ORIGINS=http://localhost:5173,http://localhost:3000
-      - GEMINI_API_KEY=AIzaSyDhs05OLz9gk5Qb-ePYWyWkGo34jBc9DwQ
+
     ports:
       - "5000:5000"
     volumes:
@@ -58,6 +58,8 @@ services:
         sleep 10 &&
         echo 'Running database seeder...' &&
         python seed.py &&
+        echo 'Running cyber expansion seeder...' &&
+        python seed_cyber_expansion.py &&
         echo 'Starting Flask application...' &&
         gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 --reload run:app
       "

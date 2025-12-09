@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 from app.models.user import User
 from email_validator import validate_email, EmailNotValidError
+from app.utils.validators import validate_password_strength
 
 bp = Blueprint('users', __name__)
 
@@ -70,7 +71,7 @@ def update_profile():
         return jsonify({'error': str(e)}), 500
 
 
-@bp.route('/password', methods=['PUT'])
+@bp.route('/change-password', methods=['PUT'])
 @jwt_required()
 def change_password():
     """Change user password"""
@@ -88,8 +89,9 @@ def change_password():
             return jsonify({'error': 'Current password is incorrect'}), 400
         
         # Validate new password
-        if len(data.get('new_password', '')) < 8:
-            return jsonify({'error': 'New password must be at least 8 characters'}), 400
+        password_errors = validate_password_strength(data.get('new_password', ''))
+        if password_errors:
+            return jsonify({'error': password_errors[0]}), 400
         
         if data['new_password'] != data.get('confirm_new_password'):
             return jsonify({'error': 'New passwords do not match'}), 400
@@ -97,6 +99,8 @@ def change_password():
         # Update password
         user.set_password(data['new_password'])
         db.session.commit()
+        
+        return jsonify({'message': 'Password changed successfully'}), 200
         
         return jsonify({'message': 'Password changed successfully'}), 200
         

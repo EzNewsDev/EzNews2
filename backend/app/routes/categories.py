@@ -8,11 +8,28 @@ bp = Blueprint('categories', __name__)
 
 @bp.route('', methods=['GET'])
 def get_categories():
-    """Get all categories"""
+    """Get all categories with article counts"""
     try:
-        categories = Category.query.all()
+        from app.models.article import Article
+        from sqlalchemy import func
+        
+        # Query categories with article count
+        results = db.session.query(Category, func.count(Article.id).label('count')) \
+            .outerjoin(Article) \
+            .group_by(Category.id) \
+            .all()
+        
+        categories_data = []
+        for cat, count in results:
+            data = cat.to_dict()
+            data['article_count'] = count
+            categories_data.append(data)
+            
+        # Sort by article count descending
+        categories_data.sort(key=lambda x: x['article_count'], reverse=True)
+            
         return jsonify({
-            'categories': [cat.to_dict() for cat in categories]
+            'categories': categories_data
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

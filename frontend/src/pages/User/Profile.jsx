@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import api from '../../utils/api';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Profile = () => {
-    const { user, setUser } = useAuth();
+    const { user, updateUser } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
     // Profile Form State
     const [profileData, setProfileData] = useState({
-        name: '',
+        full_name: '',
         email: ''
     });
 
@@ -31,8 +32,8 @@ const Profile = () => {
         try {
             const response = await api.get('/users/profile');
             setProfileData({
-                name: response.data.name,
-                email: response.data.email
+                full_name: response.data.full_name || '',
+                email: response.data.email || ''
             });
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -55,11 +56,11 @@ const Profile = () => {
 
         try {
             const response = await api.put('/users/profile', {
-                name: profileData.name
+                full_name: profileData.full_name
             });
 
             // Update user in auth context
-            setUser({ ...user, name: profileData.name });
+            updateUser({ full_name: profileData.full_name });
 
             toast.success('Profil berhasil diperbarui');
         } catch (error) {
@@ -126,10 +127,14 @@ const Profile = () => {
 
         setSaving(true);
         try {
-            await api.put('/users/change-password', {
-                current_password: passwordData.current_password,
-                new_password: passwordData.new_password
-            });
+            const payload = {
+                old_password: passwordData.current_password,
+                new_password: passwordData.new_password,
+                confirm_new_password: passwordData.confirm_password
+            };
+            console.log('Sending payload:', payload);
+
+            await api.put('/users/change-password', payload);
 
             // Clear form
             setPasswordData({
@@ -199,8 +204,8 @@ const Profile = () => {
                                 <input
                                     type="text"
                                     id="name"
-                                    name="name"
-                                    value={profileData.name}
+                                    name="full_name"
+                                    value={profileData.full_name}
                                     onChange={handleProfileChange}
                                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     required
@@ -326,6 +331,7 @@ const Profile = () => {
                     </form>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };
