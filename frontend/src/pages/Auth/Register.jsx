@@ -39,6 +39,22 @@ const Register = () => {
             toast.error('Password minimal 8 karakter');
             return false;
         }
+        if (!/(?=.*[a-z])/.test(formData.password)) {
+            toast.error('Password harus mengandung huruf kecil');
+            return false;
+        }
+        if (!/(?=.*[A-Z])/.test(formData.password)) {
+            toast.error('Password harus mengandung huruf besar');
+            return false;
+        }
+        if (!/(?=.*\d)/.test(formData.password)) {
+            toast.error('Password harus mengandung angka');
+            return false;
+        }
+        if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
+            toast.error('Password harus mengandung karakter spesial (@$!%*?&)');
+            return false;
+        }
 
         if (formData.password !== formData.confirm_password) {
             toast.error('Password dan konfirmasi password tidak cocok');
@@ -143,7 +159,7 @@ const Register = () => {
                                     placeholder="secretCode567"
                                 />
                                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                    Password should be at least 8 characters (16 is better) including a number and a lowercase letter.
+                                    Min. 8 karakter, 1 huruf besar, 1 huruf kecil, 1 angka, 1 karakter spesial (@$!%*?&)
                                 </p>
                             </div>
 

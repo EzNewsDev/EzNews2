@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
@@ -36,6 +37,8 @@ const NewsDetail = () => {
             try {
                 const response = await api.get(`/articles/${articleId}`);
                 setArticle(response.data);
+                console.log('Article data:', response.data);
+                console.log('Tags:', response.data.tags);
 
                 // Check if bookmarked (if API provides this info)
                 if (response.data.is_bookmarked) {
@@ -62,24 +65,27 @@ const NewsDetail = () => {
             return;
         }
 
-        // Prevent re-bookmarking if already bookmarked
-        if (isBookmarked) {
-            toast.info('Artikel sudah ada di bookmark Anda. Hapus bookmark dari halaman Bookmark.');
-            return;
-        }
-
         try {
-            const response = await api.post('/bookmarks', { article_id: parseInt(articleId) });
+            if (isBookmarked) {
+                // Remove bookmark
+                await api.delete(`/bookmarks/${articleId}`);
+                setIsBookmarked(false);
+                setBookmarkId(null);
+                toast.success('Bookmark dihapus');
+            } else {
+                // Add bookmark
+                const response = await api.post('/bookmarks', { article_id: parseInt(articleId) });
 
-            // Backend might return different formats
-            const newBookmarkId = response.data.bookmark?.id || response.data.id || null;
+                // Backend might return different formats
+                const newBookmarkId = response.data.bookmark?.id || response.data.id || null;
 
-            setIsBookmarked(true);
-            setBookmarkId(newBookmarkId);
-            toast.success('Artikel ditambahkan ke bookmark');
+                setIsBookmarked(true);
+                setBookmarkId(newBookmarkId);
+                toast.success('Artikel disimpan ke bookmark');
+            }
         } catch (error) {
-            console.error('Error adding bookmark:', error);
-            toast.error('Gagal mengubah bookmark');
+            console.error('Error toggling bookmark:', error);
+            toast.error('Gagal mengubah status bookmark');
         }
     };
 
@@ -223,8 +229,8 @@ const NewsDetail = () => {
                                     {/* Bookmark Button */}
                                     <button
                                         onClick={handleBookmark}
-                                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${isBookmarked
-                                            ? 'bg-primary text-white'
+                                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md ${isBookmarked
+                                            ? 'bg-primary text-white hover:bg-primary-dark'
                                             : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white'
                                             }`}
                                     >
@@ -236,25 +242,27 @@ const NewsDetail = () => {
 
                                     {/* Export Buttons */}
                                     <div className="relative group">
-                                        <button className="flex items-center space-x-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-primary hover:text-white transition-colors">
+                                        <button className="flex items-center space-x-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-primary hover:text-white transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md">
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             <span className="hidden sm:inline">Export</span>
                                         </button>
-                                        <div className="hidden group-hover:block absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-10">
-                                            <button
-                                                onClick={() => handleExport('pdf')}
-                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            >
-                                                PDF
-                                            </button>
-                                            <button
-                                                onClick={() => handleExport('txt')}
-                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            >
-                                                TXT
-                                            </button>
+                                        <div className="hidden group-hover:block absolute right-0 top-full pt-2 w-32 z-10">
+                                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2">
+                                                <button
+                                                    onClick={() => handleExport('pdf')}
+                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                >
+                                                    PDF
+                                                </button>
+                                                <button
+                                                    onClick={() => handleExport('txt')}
+                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                >
+                                                    TXT
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -276,6 +284,20 @@ const NewsDetail = () => {
                             <div className="prose dark:prose-invert max-w-none mb-8 text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-line">
                                 {article.content}
                             </div>
+
+                            {/* Tags */}
+                            {article.tags && article.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-8">
+                                    {article.tags.map(tag => (
+                                        <span
+                                            key={tag.id}
+                                            className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-default"
+                                        >
+                                            #{tag.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
 
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4 flex items-center justify-between">
                                 AI Summary
@@ -363,6 +385,7 @@ const NewsDetail = () => {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div >
 
     );

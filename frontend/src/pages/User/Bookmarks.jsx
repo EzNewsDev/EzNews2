@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import NewsCard from '../../components/NewsCard';
 import api from '../../utils/api';
 import { toast } from 'react-toastify';
@@ -147,6 +148,7 @@ const Bookmarks = () => {
                     </div>
                 )}
             </div>
+            <Footer />
         </div>
     );
 };

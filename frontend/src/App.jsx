@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from './contexts/AuthContext';
+import { ProtectedRoute, AdminRoute } from './components/RouteGuards';
 
 // Pages
 import Login from './pages/Auth/Login';
@@ -20,27 +21,6 @@ import { ArticleForm } from './pages/Admin/ArticleForm';
 import { Categories } from './pages/Admin/Categories';
 import { Tags } from './pages/Admin/Tags';
 import { Users } from './pages/Admin/Users';
-
-// Protected Route Components
-const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated, loading } = useAuth();
-
-    if (loading) {
-        return <div className="min-h-screen flex items-center justify-center"><div className="spinner border-4 border-primary-light border-t-transparent rounded-full w-12 h-12"></div></div>;
-    }
-
-    return isAuthenticated ? children : <Navigate to="/login" />;
-};
-
-const AdminRoute = ({ children }) => {
-    const { isAdmin, loading } = useAuth();
-
-    if (loading) {
-        return <div className="min-h-screen flex items-center justify-center"><div className="spinner border-4 border-primary-light border-t-transparent rounded-full w-12 h-12"></div></div>;
-    }
-
-    return isAdmin ? children : <Navigate to="/" />;
-};
 
 function App() {
     return (

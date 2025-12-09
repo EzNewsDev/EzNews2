@@ -2,6 +2,22 @@ import re
 from email_validator import validate_email, EmailNotValidError
 
 
+def validate_password_strength(password):
+    """Validate password strength"""
+    errors = []
+    if len(password) < 8:
+        errors.append('Password must be at least 8 characters')
+    if not re.search(r'[A-Z]', password):
+        errors.append('Password must contain at least one uppercase letter')
+    if not re.search(r'[a-z]', password):
+        errors.append('Password must contain at least one lowercase letter')
+    if not re.search(r'\d', password):
+        errors.append('Password must contain at least one number')
+    if not re.search(r'[@$!%*?&]', password):
+        errors.append('Password must contain at least one special character (@$!%*?&)')
+    return errors
+
+
 def validate_registration_data(data):
     """Validate user registration data"""
     errors = []
@@ -18,8 +34,8 @@ def validate_registration_data(data):
     
     # Validate password
     password = data.get('password', '')
-    if len(password) < 8:
-        errors.append('Password must be at least 8 characters')
+    password_errors = validate_password_strength(password)
+    errors.extend(password_errors)
     
     # Check password confirmation
     if password != data.get('confirm_password', ''):

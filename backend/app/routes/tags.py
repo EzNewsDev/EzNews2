@@ -94,6 +94,10 @@ def delete_tag(tag_id):
         if not tag:
             return jsonify({'error': 'Tag not found'}), 404
         
+        # Check if tag is used in any articles
+        if tag.articles:
+            return jsonify({'error': 'Cannot delete tag that is used in articles'}), 400
+        
         db.session.delete(tag)
         db.session.commit()
         
