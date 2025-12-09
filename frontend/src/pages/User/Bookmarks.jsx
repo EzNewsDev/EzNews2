@@ -18,7 +18,9 @@ const Bookmarks = () => {
         setLoading(true);
         try {
             const response = await api.get('/bookmarks');
-            setBookmarks(response.data);
+            // Backend returns {bookmarks: [...]} not direct array
+            const bookmarksData = response.data.bookmarks || [];
+            setBookmarks(bookmarksData);
         } catch (error) {
             console.error('Error fetching bookmarks:', error);
             if (error.response?.status === 401) {
@@ -32,15 +34,25 @@ const Bookmarks = () => {
         }
     };
 
-    const handleRemoveBookmark = async (bookmarkId) => {
-        if (!window.confirm('Hapus bookmark ini?')) return;
+    const handleRemoveBookmark = async (bookmark) => {
+        console.log('[DELETE] Starting delete for bookmark:', bookmark);
+        console.log('[DELETE] Article ID:', bookmark.article?.id);
+        console.log('[DELETE] Bookmark ID:', bookmark.id);
 
         try {
-            await api.delete(`/bookmarks/${bookmarkId}`);
-            setBookmarks(bookmarks.filter(b => b.id !== bookmarkId));
+            console.log('[DELETE] Calling API DELETE /bookmarks/' + bookmark.article.id);
+            const response = await api.delete(`/bookmarks/${bookmark.article.id}`);
+            console.log('[DELETE] API Response:', response);
+
+            console.log('[DELETE] Filtering bookmarks - Before:', bookmarks.length);
+            const newBookmarks = bookmarks.filter(b => b.id !== bookmark.id);
+            console.log('[DELETE] Filtering bookmarks - After:', newBookmarks.length);
+
+            setBookmarks(newBookmarks);
             toast.success('Bookmark dihapus');
         } catch (error) {
-            console.error('Error removing bookmark:', error);
+            console.error('[DELETE] Error removing bookmark:', error);
+            console.error('[DELETE] Error response:', error.response);
             toast.error('Gagal menghapus bookmark');
         }
     };
@@ -84,7 +96,7 @@ const Bookmarks = () => {
 
                                     {/* Remove Button Overlay */}
                                     <button
-                                        onClick={() => handleRemoveBookmark(bookmark.id)}
+                                        onClick={() => handleRemoveBookmark(bookmark)}
                                         className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-colors z-10"
                                         title="Hapus Bookmark"
                                     >

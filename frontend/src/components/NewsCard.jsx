@@ -9,13 +9,13 @@ const NewsCard = ({ article }) => {
         return null;
     }
 
-    const { id: articleId, title, content, image_url, category, author_name, published_at } = article;
+    const { id: articleId, title, content, image_url, category, author_name, published_date } = article;
 
     // Extract first 150 characters as excerpt
     const excerpt = content ? content.substring(0, 150) + '...' : '';
 
     // Format date to relative time
-    const timeAgo = published_at ? formatDistanceToNow(new Date(published_at), {
+    const timeAgo = published_date ? formatDistanceToNow(new Date(published_date), {
         addSuffix: true,
         locale: idLocale
     }) : 'Baru saja';

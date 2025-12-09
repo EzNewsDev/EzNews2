@@ -21,7 +21,8 @@ const NewsList = () => {
         const fetchCategories = async () => {
             try {
                 const response = await api.get('/categories');
-                setCategories(response.data);
+                const categoriesData = response.data.categories || response.data;
+                setCategories(Array.isArray(categoriesData) ? categoriesData : []);
             } catch (error) {
                 console.error('Error fetching categories:', error);
             }
@@ -98,6 +99,8 @@ const NewsList = () => {
                     categories={categories}
                     loading={loading}
                 />
+
+
 
                 {/* Loading State */}
                 {loading ? (

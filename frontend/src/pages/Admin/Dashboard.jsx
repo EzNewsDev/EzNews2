@@ -33,9 +33,9 @@ const AdminDashboard = () => {
 
             setStats({
                 totalArticles: articlesRes.data.total || 0,
-                totalCategories: categoriesRes.data.length || 0,
-                totalTags: tagsRes.data.length || 0,
-                totalUsers: usersRes.data.length || 0
+                totalCategories: (categoriesRes.data.categories || categoriesRes.data)?.length || 0,
+                totalTags: (tagsRes.data.tags || tagsRes.data)?.length || 0,
+                totalUsers: (usersRes.data.users || usersRes.data)?.length || 0
             });
 
             // Fetch recent articles (last 5)
@@ -251,7 +251,10 @@ const AdminDashboard = () => {
                                                 {article.author_name}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                                                {format(new Date(article.published_at), 'dd MMM yyyy', { locale: idLocale })}
+                                                {article.published_date
+                                                    ? format(new Date(article.published_date), 'dd MMM yyyy', { locale: idLocale })
+                                                    : 'Tanggal tidak tersedia'
+                                                }
                                             </td>
                                             <td className="px-6 py-4 text-sm">
                                                 <div className="flex items-center space-x-2">

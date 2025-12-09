@@ -37,17 +37,10 @@ const NewsDetail = () => {
                 const response = await api.get(`/articles/${articleId}`);
                 setArticle(response.data);
 
-                // Check if bookmarked
-                if (isAuthenticated) {
-                    const bookmarksResponse = await api.get('/bookmarks');
-                    const bookmarksData = Array.isArray(bookmarksResponse.data)
-                        ? bookmarksResponse.data
-                        : [];
-                    const bookmark = bookmarksData.find(b => b.article_id === parseInt(articleId));
-                    if (bookmark) {
-                        setIsBookmarked(true);
-                        setBookmarkId(bookmark.id);
-                    }
+                // Check if bookmarked (if API provides this info)
+                if (response.data.is_bookmarked) {
+                    setIsBookmarked(true);
+                    setBookmarkId(response.data.bookmark_id);
                 }
             } catch (error) {
                 console.error('Error fetching article:', error);
@@ -69,20 +62,23 @@ const NewsDetail = () => {
             return;
         }
 
+        // Prevent re-bookmarking if already bookmarked
+        if (isBookmarked) {
+            toast.info('Artikel sudah ada di bookmark Anda. Hapus bookmark dari halaman Bookmark.');
+            return;
+        }
+
         try {
-            if (isBookmarked) {
-                await api.delete(`/bookmarks/${bookmarkId}`);
-                setIsBookmarked(false);
-                setBookmarkId(null);
-                toast.success('Bookmark dihapus');
-            } else {
-                const response = await api.post('/bookmarks', { article_id: parseInt(articleId) });
-                setIsBookmarked(true);
-                setBookmarkId(response.data.bookmark_id);
-                toast.success('Artikel ditambahkan ke bookmark');
-            }
+            const response = await api.post('/bookmarks', { article_id: parseInt(articleId) });
+
+            // Backend might return different formats
+            const newBookmarkId = response.data.bookmark?.id || response.data.id || null;
+
+            setIsBookmarked(true);
+            setBookmarkId(newBookmarkId);
+            toast.success('Artikel ditambahkan ke bookmark');
         } catch (error) {
-            console.error('Error toggling bookmark:', error);
+            console.error('Error adding bookmark:', error);
             toast.error('Gagal mengubah bookmark');
         }
     };
@@ -107,7 +103,8 @@ const NewsDetail = () => {
                 article_id: parseInt(articleId),
                 filters: selectedFilters
             });
-            setSummary(response.data.summary);
+            // Backend returns the summary object directly
+            setSummary(response.data);
         } catch (error) {
             console.error('Error generating summary:', error);
             toast.error('Gagal generate ringkasan');
@@ -214,8 +211,8 @@ const NewsDetail = () => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         <span>
-                                            {article.published_at
-                                                ? format(new Date(article.published_at), 'dd MMMM yyyy', { locale: idLocale })
+                                            {article.published_date
+                                                ? format(new Date(article.published_date), 'dd MMMM yyyy', { locale: idLocale })
                                                 : 'Tanggal tidak tersedia'
                                             }
                                         </span>
@@ -276,40 +273,12 @@ const NewsDetail = () => {
                             )}
 
                             {/* Article Content */}
-                            <div className="prose prose-lg dark:prose-invert max-w-none">
-                                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                                    {article.content}
-                                </p>
+                            <div className="prose dark:prose-invert max-w-none mb-8 text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-line">
+                                {article.content}
                             </div>
 
-                            {/* Tags */}
-                            {article.tags && article.tags.length > 0 && (
-                                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                                    <div className="flex flex-wrap gap-2">
-                                        {article.tags.map((tag) => (
-                                            <span
-                                                key={tag.id}
-                                                className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-full"
-                                            >
-                                                #{tag.name}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* AI Summary Sidebar */}
-                    <div className="lg:w-96">
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                                    <svg className="w-6 h-6 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                    </svg>
-                                    AI Summary
-                                </h3>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4 flex items-center justify-between">
+                                AI Summary
                                 <button
                                     onClick={() => setShowSummaryPanel(!showSummaryPanel)}
                                     className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
@@ -318,70 +287,84 @@ const NewsDetail = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
-                            </div>
-
-                            {showSummaryPanel && (
-                                <>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                        Pilih filter untuk mendapatkan ringkasan AI yang disesuaikan:
-                                    </p>
-
-                                    {/* Filter Buttons */}
-                                    <div className="grid grid-cols-2 gap-2 mb-4">
-                                        {Object.keys(filterLabels).map((filter) => (
-                                            <button
-                                                key={filter}
-                                                onClick={() => handleFilterToggle(filter)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${summaryFilters[filter]
-                                                    ? 'bg-primary text-white'
-                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                                    }`}
-                                            >
-                                                {filterLabels[filter]}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    {/* Generate Button */}
-                                    <button
-                                        onClick={handleGenerateSummary}
-                                        disabled={summaryLoading}
-                                        className="w-full bg-primary-light text-white px-4 py-3 rounded-lg font-medium hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                                    >
-                                        {summaryLoading ? (
-                                            <>
-                                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Generating...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                                </svg>
-                                                Generate Ringkasan
-                                            </>
-                                        )}
-                                    </button>
-
-                                    {/* Summary Display */}
-                                    {summary && (
-                                        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Ringkasan:</h4>
-                                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                                                {summary}
-                                            </p>
-                                        </div>
-                                    )}
-                                </>
-                            )}
+                            </h3>
                         </div>
+
+                        {showSummaryPanel && (
+                            <>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    Pilih filter untuk mendapatkan ringkasan AI yang disesuaikan:
+                                </p>
+
+                                {/* Filter Buttons */}
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    {Object.keys(filterLabels).map((filter) => (
+                                        <button
+                                            key={filter}
+                                            onClick={() => handleFilterToggle(filter)}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${summaryFilters[filter]
+                                                ? 'bg-primary text-white'
+                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                }`}
+                                        >
+                                            {filterLabels[filter]}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Generate Button */}
+                                <button
+                                    onClick={handleGenerateSummary}
+                                    disabled={summaryLoading}
+                                    className="w-full bg-primary-light text-white px-4 py-3 rounded-lg font-medium hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                >
+                                    {summaryLoading ? (
+                                        <>
+                                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Generating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            Generate Ringkasan
+                                        </>
+                                    )}
+                                </button>
+
+                                {/* Summary Display */}
+                                {summary && (
+                                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                        <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Ringkasan AI:</h4>
+                                        <div className="space-y-3">
+                                            {typeof summary === 'object' ? (
+                                                Object.entries(summary).map(([key, value]) => (
+                                                    <div key={key}>
+                                                        <span className="font-bold text-primary capitalize">{filterLabels[key] || key}: </span>
+                                                        <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                                            {value}
+                                                        </span>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                                                    {summary}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
+
     );
 };
 
